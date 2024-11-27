@@ -4,6 +4,8 @@
 #include<errno.h>
 #include<unistd.h>
 #include<sys/select.h>
+#include<ctype.h> 
+#include<locale.h>
 
 #define RESET "\033[0m"
 #define ERROR_COLOR "\033[31m"
@@ -20,6 +22,15 @@
 typedef int bool;
 
 #define input_stream stdin // TODO: get this from terminal arguments at runtime <--------------------------------------------
+
+// Definitions of constants
+
+//const int MAX_LENGTH_OF_PROMPTS = 100;
+const int HISTORY_RECORDS_SIZE = 500;
+char* START_CODONS[] = {"AUG", "GUG", "UUG"}; // Source: https://bio.libretexts.org/Bookshelves/Introductory_and_General_Biology/General_Biology_(Boundless)/15%3A_Genes_and_Proteins/15.03%3A_Prokaryotic_Transcription_-_Transcription_in_Prokaryotes
+const int NUM_OF_START_CODONS = 3;
+char* STOP_CODONS[] = {"UAA", "UAG", "UGA"}; // Source: https://microbenotes.com/codon-chart-table-amino-acids/
+const int NUM_OF_STOP_CODONS = 3;
 
 // Structs and enums definitions
 
@@ -104,13 +115,31 @@ void clear_input_buffer(FILE* input_stream, FILE* output_stream, int maxLength)
     		fprintf(output_stream, "\nNum of flushed chars: %d\n" RESET, numOfFlushed);
     	}    	
     }
-	
+}
+
+void toUpperCase(char *str)
+{
+	setlocale(LC_ALL, "C");
+
+    while (*str) {
+        *str = toupper(*str);  // Convert each character to uppercase
+        str++;
+    }
+}
+
+int getSubstringPosition(char *str, char *substr)
+{
+	char *pos = strstr(str, substr);
+
+    if (pos != NULL) {
+        return pos - str; // To calculate the index, we subtract the base string pointer (str) from the result of strstr()
+    } else {
+        return -1;
+    }
 }
 
 int main(int argc, char const *argv[])
 {
-	//const int MAX_LENGTH_OF_PROMPTS = 100;
-	const int HISTORY_RECORDS_SIZE = 500;
 
     FILE *output_stream = NULL, *archiveFile = NULL;
     char* historyOfSeqs[HISTORY_RECORDS_SIZE];
@@ -229,25 +258,64 @@ int main(int argc, char const *argv[])
 		        fprintf(output_stream, "\nEnter a new sequence:\t");
 		    	fgets(sequence, maxLengthOfSeq+1, input_stream);
 		    	
-        		int length = strlen(sequence); // Check how many characters were actually read (ignoring the newline if present)
+        		int sequenceLength = strlen(sequence); // Check how many characters were actually read (ignoring the newline if present)
 
-        		// If there's a new line at the end of the string, we want it flushed away so we handle it in the else block
-        		 if (sequence[length - 1] == '\n')
+        		 if (sequence[sequenceLength - 1] == '\n')
 		        {
-		        	sequence[length - 1] = '\0';
-		        } else if ( (length >= maxLengthOfSeq) || (sequence[length - 1] == '\n') )
+		        	// newLine char is ignored
+		        	sequence[sequenceLength - 1] = '\0';
+		        	sequenceLength -= 1; 
+
+		        } else if ( sequenceLength >= maxLengthOfSeq )
         		{
 		        	clear_input_buffer(input_stream, output_stream, maxLengthOfSeq); // If the user enters more than the buffer size, clear the remaining input
 
 		        }
-
 		        inputOfSeqsCompleted = (strcmp(sequence, "q") == 0) || (strcmp(sequence, "Q") == 0);
+
+		        bool startCodonAtBeginning = FALSE, stopCodonAtEnd = FALSE, noPrematureStopCodon = TRUE;
+		        char *startCodon, *stopCodon;
 
 		        if (!inputOfSeqsCompleted)
 		        {
 		        	fprintf(output_stream, "\nYou entered the sequence:\n");
 		        	fprintf(output_stream, GREEN_BLOCK_OF_TEXT "%s" RESET, sequence);
 		        	fprintf(output_stream, "\n");
+
+		        	toUpperCase(sequence); // convert to lower case for uniformity and easier processing
+
+		        	for (int i = 0; i < NUM_OF_START_CODONS; ++i)
+		        	{
+		        		if ( strncmp(sequence, START_CODONS[i], 3) == 0 ) 
+	        			{
+	        				startCodonAtBeginning = TRUE;
+	        				startCodon = START_CODONS[i];
+	        				break;
+	        			}
+		        	}
+
+		        	for (int i = 0; i < NUM_OF_STOP_CODONS; ++i)
+		        	{
+		        		int positionOfStopCodon = getSubstringPosition(sequence, STOP_CODONS[i]);
+
+		        		if ( positionOfStopCodon == sequenceLength-strlen(STOP_CODONS[i]) )
+		        		{
+		        			stopCodonAtEnd = TRUE;
+		        			stopCodon = STOP_CODONS[i];
+		        		} else if ( positionOfStopCodon == -1 )
+		        		{
+		        			break;
+		        		} else
+		        		{
+		        			noPrematureStopCodon = FALSE;
+		        			break;
+		        		}
+		        	}
+
+		        	if ( startCodonAtBeginning && stopCodonAtEnd && noPrematureStopCodon )
+		        	{
+		        		fprintf(output_stream, SUCCESS_BLINK "This is a valid coding sequence!!! \n(with start codon -> '%s' and stop codon -> '%s')\n" RESET, startCodon, stopCodon);
+		        	}
 		        }
 
 	    	} while( !inputOfSeqsCompleted );
