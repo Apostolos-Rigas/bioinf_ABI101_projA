@@ -22,6 +22,7 @@
 typedef int bool;
 
 #define input_stream stdin // TODO: get this from terminal arguments at runtime <--------------------------------------------
+#define CODONS_LENGTH 3
 
 // Definitions of constants
 
@@ -42,16 +43,24 @@ typedef enum {
 
 typedef struct {   
   specialCodonType type;           
-  char codonSequence;
-  int position;       
+  char *codonSequence;
+  int positionInSequence;       
 } SpecialSubsequence;
 
 typedef struct {   
   int length;
   bool isCodingSequence;
-  SpecialSubsequence startCodon;           
-  SpecialSubsequence stopCodon;
+  SpecialSubsequence specialCodons[];
 } Sequence;
+
+const char* codonTypeToString(specialCodonType type) {
+    switch (type) {
+        case START: return "START";
+        case STOP: return "STOP";
+        case PLAIN: return "PLAIN";
+        default: return "UNKNOWN";
+    }
+}
 
 bool stream_is_empty(FILE* input_stream)
 {
@@ -127,6 +136,7 @@ void toUpperCase(char *str)
     }
 }
 
+/*
 int getSubstringPosition(char *str, char *substr)
 {
 	char *pos = strstr(str, substr);
@@ -137,6 +147,7 @@ int getSubstringPosition(char *str, char *substr)
         return -1;
     }
 }
+*/
 
 int main(int argc, char const *argv[])
 {
@@ -277,7 +288,6 @@ int main(int argc, char const *argv[])
 		        if (!inputOfSeqsCompleted)
 		        {
 			        bool isLengthMultOf3 = FALSE, isStartCodonAtBeginning = FALSE, isStopCodonAtEnd = FALSE, hasNoPrematureStopCodon = TRUE;
-			        char *startCodon, *stopCodon;
 
 		        	fprintf(output_stream, "\nYou entered the sequence:\n");
 		        	fprintf(output_stream, GREEN_BLOCK_OF_TEXT "%s" RESET, sequence);
@@ -290,44 +300,104 @@ int main(int argc, char const *argv[])
 			        }
 		        	toUpperCase(sequence); // convert to lower case for uniformity and easier processing
 
-		        	for (int i = 0; i < NUM_OF_START_CODONS; ++i)
+				  	SpecialSubsequence* codons = (SpecialSubsequence *) malloc( (sequenceLength/3) * sizeof(SpecialSubsequence) );
+				  	int codonsArraySize = 0;  // Keep track of the current size of the array. Array is dynamically extended in each iteration of the following for-loop
+
+		        	for (int seqIndex = 0; seqIndex < sequenceLength; /*seqIndex + CODONS_LENGTH, but it's done at the last step of each iteration */ )
 		        	{
-		        		if ( strncmp(sequence, START_CODONS[i], 3) == 0 ) 
-	        			{
-	        				isStartCodonAtBeginning = TRUE;
-	        				startCodon = START_CODONS[i];
-	        				break;
-	        			}
+		        		SpecialSubsequence* currentCodon = (SpecialSubsequence*) malloc(sizeof(SpecialSubsequence));
+		        		bool isSpecialCodon = FALSE;
+
+		        		for (int i = 0; i < NUM_OF_START_CODONS; ++i)
+			        	{
+							
+			        		if ( strncmp(&sequence[seqIndex], START_CODONS[i], CODONS_LENGTH) == 0 ) 
+		        			{
+		        				isStartCodonAtBeginning = TRUE;
+		        				currentCodon->type = START;
+								currentCodon->codonSequence = START_CODONS[i];
+								currentCodon->positionInSequence = seqIndex;
+								isSpecialCodon = TRUE;
+		        				break;
+		        			}
+			        	}
+
+			        	for (int i = 0; i < NUM_OF_STOP_CODONS; ++i)
+			        	{
+			        		if ( strncmp(&sequence[seqIndex], STOP_CODONS[i], CODONS_LENGTH) == 0 ) 
+		        			{
+		        				if ( seqIndex == sequenceLength-strlen(STOP_CODONS[i]) )
+			        			{			        				
+			        				isStopCodonAtEnd = TRUE;
+			        			} else
+			        			{
+			        				hasNoPrematureStopCodon = FALSE;
+			        			}
+		        				currentCodon->type = STOP;
+								currentCodon->codonSequence = STOP_CODONS[i];
+								currentCodon->positionInSequence = seqIndex;
+								isSpecialCodon = TRUE;
+								break;
+		        			}
+			        	}
+
+			        	if (!isSpecialCodon)
+			        	{
+			        		currentCodon->type = PLAIN;
+			        		currentCodon->codonSequence = (char*) malloc(sizeof(char) * CODONS_LENGTH + sizeof(char));
+				        	memcpy(currentCodon->codonSequence, &sequence[seqIndex], CODONS_LENGTH);
+				        	currentCodon->positionInSequence = seqIndex;
+			        	}
+
+			        	// Reallocate memory for the array to hold one more element
+				        codons = realloc(codons, (codonsArraySize + 1) * sizeof(SpecialSubsequence));
+				        if (codons == NULL) {
+				            fprintf(output_stream, ERROR_COLOR "Memory allocation failed. Couldn't store codon to the list of sequence's codons.\n%s\a\n" RESET, strerror(errno));
+				            return 1; // TODO: do not exit, but return to main menu, after flushing all allocated memory
+				        }
+				        codons[codonsArraySize] = *currentCodon;  // Append the structure 'currentCodon' to the array
+				        codonsArraySize++;
+				        						
+				        free(currentCodon);
+
+				        seqIndex += CODONS_LENGTH;
 		        	}
 
-		        	for (int i = 0; i < NUM_OF_STOP_CODONS; ++i)
-		        	{
-		        		int positionOfStopCodon = getSubstringPosition(sequence, STOP_CODONS[i]);
+					bool isCodingSequence = isStartCodonAtBeginning && isStopCodonAtEnd && hasNoPrematureStopCodon;
+				  	int lengthOfCodonsArray = ((sequenceLength/3) * sizeof(SpecialSubsequence)) / sizeof(codons[0]);
 
-		        		if ( positionOfStopCodon == sequenceLength-strlen(STOP_CODONS[i]) )
-		        		{
-		        			isStopCodonAtEnd = TRUE;
-		        			stopCodon = STOP_CODONS[i];
-		        		} else if ( positionOfStopCodon == -1 )
-		        		{
-		        			break;
-		        		} else
-		        		{
-		        			hasNoPrematureStopCodon = FALSE;
-		        			break;
-		        		}
+				  	 // Allocate memory for struct and flexible array of codons
+				    Sequence* currentSequence = malloc(sizeof(Sequence) + sizeof(SpecialSubsequence) * lengthOfCodonsArray);
+					currentSequence->length = strlen(sequence);
+					currentSequence->isCodingSequence = isCodingSequence;
+					memcpy(currentSequence->specialCodons, codons, sizeof(SpecialSubsequence) * lengthOfCodonsArray);
+
+
+		        	if ( isCodingSequence )
+		        	{
+		        		fprintf(output_stream, SUCCESS_BLINK "This is a valid coding sequence!!!\n" RESET);
 		        	}
 
-		        	if ( isStartCodonAtBeginning && isStopCodonAtEnd && hasNoPrematureStopCodon )
+					for (int i = 0; i < lengthOfCodonsArray; ++i)
 		        	{
-		        		fprintf(output_stream, SUCCESS_BLINK "This is a valid coding sequence!!! \n(with start codon -> '%s' and stop codon -> '%s')\n" RESET, startCodon, stopCodon);
+		        		fprintf(output_stream, "Position: %d", currentSequence->specialCodons[i].positionInSequence);
+		        		fprintf(output_stream, "\tCodon: %s", currentSequence->specialCodons[i].codonSequence);
+		        		fprintf(output_stream, "\tType: %s\n", codonTypeToString(currentSequence->specialCodons[i].type));
 		        	}
+
+		        	/* TODO: do I need to free the following memory section? if yes, how to do it effectively?
+		        	for (int i = 0; i < lengthOfCodonsArray; ++i)
+		        	{
+		        		free(codons[i].codonSequence);
+		        	}
+		        	*/
+					free(codons);
+					free(currentSequence);
 		        }
-
 	    	} while( !inputOfSeqsCompleted );
-	
+			
 	    	free(sequence);
-	    	sequence = NULL;
+	    	sequence = NULL; // Is this correct here, since we freed memory allocated for 'sequence'?
 
 	    } else if (menuOption == 2)
 	    {
