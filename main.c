@@ -273,22 +273,28 @@ int main(int argc, char const *argv[])
 		        }
 		        inputOfSeqsCompleted = (strcmp(sequence, "q") == 0) || (strcmp(sequence, "Q") == 0);
 
-		        bool startCodonAtBeginning = FALSE, stopCodonAtEnd = FALSE, noPrematureStopCodon = TRUE;
-		        char *startCodon, *stopCodon;
 
 		        if (!inputOfSeqsCompleted)
 		        {
+			        bool isLengthMultOf3 = FALSE, isStartCodonAtBeginning = FALSE, isStopCodonAtEnd = FALSE, hasNoPrematureStopCodon = TRUE;
+			        char *startCodon, *stopCodon;
+
 		        	fprintf(output_stream, "\nYou entered the sequence:\n");
 		        	fprintf(output_stream, GREEN_BLOCK_OF_TEXT "%s" RESET, sequence);
 		        	fprintf(output_stream, "\n");
 
+			        isLengthMultOf3 = strlen(sequence)  % 3 == 0;
+			        if (!isLengthMultOf3)
+			        {
+			        	continue;
+			        }
 		        	toUpperCase(sequence); // convert to lower case for uniformity and easier processing
 
 		        	for (int i = 0; i < NUM_OF_START_CODONS; ++i)
 		        	{
 		        		if ( strncmp(sequence, START_CODONS[i], 3) == 0 ) 
 	        			{
-	        				startCodonAtBeginning = TRUE;
+	        				isStartCodonAtBeginning = TRUE;
 	        				startCodon = START_CODONS[i];
 	        				break;
 	        			}
@@ -300,19 +306,19 @@ int main(int argc, char const *argv[])
 
 		        		if ( positionOfStopCodon == sequenceLength-strlen(STOP_CODONS[i]) )
 		        		{
-		        			stopCodonAtEnd = TRUE;
+		        			isStopCodonAtEnd = TRUE;
 		        			stopCodon = STOP_CODONS[i];
 		        		} else if ( positionOfStopCodon == -1 )
 		        		{
 		        			break;
 		        		} else
 		        		{
-		        			noPrematureStopCodon = FALSE;
+		        			hasNoPrematureStopCodon = FALSE;
 		        			break;
 		        		}
 		        	}
 
-		        	if ( startCodonAtBeginning && stopCodonAtEnd && noPrematureStopCodon )
+		        	if ( isStartCodonAtBeginning && isStopCodonAtEnd && hasNoPrematureStopCodon )
 		        	{
 		        		fprintf(output_stream, SUCCESS_BLINK "This is a valid coding sequence!!! \n(with start codon -> '%s' and stop codon -> '%s')\n" RESET, startCodon, stopCodon);
 		        	}
