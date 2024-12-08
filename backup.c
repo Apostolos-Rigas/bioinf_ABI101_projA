@@ -44,11 +44,6 @@ typedef enum {
     PLAIN        // 2
 } specialCodonType;
 
-typedef enum {
-    FORWARD,    // 0
-    REVERSE     // 1
-} direction;
-
 typedef struct {   
   specialCodonType type;           
   char *codonSequence;
@@ -57,7 +52,6 @@ typedef struct {
 
 typedef struct {   
   int length;
-  direction seqDirection;
   int positionInSupersequence;
   bool isCodingSequence;
   SpecialSubsequence specialCodons[];
@@ -68,14 +62,6 @@ const char* codonTypeToString(specialCodonType type) {
         case START: return "START";
         case STOP: return "STOP";
         case PLAIN: return "PLAIN";
-        default: return "UNKNOWN";
-    }
-}
-
-const char* readDirectionToString(direction readDirection) {
-    switch (readDirection) {
-        case FORWARD: return "FORWARD";
-        case REVERSE: return "REVERSE";
         default: return "UNKNOWN";
     }
 }
@@ -197,73 +183,66 @@ char* reverseString(FILE* output_stream, char* str, int strLength) {
     return reversed;
 }
 
-int is_start_codon(char* sequence, int seqIndex) {
+bool is_valid_seq(FILE* output_stream, int numOfRuns, char* sequence, int sequenceLength) {
+	bool isLengthMultOf3 = FALSE, isStartCodonAtBeginning = FALSE, isStopCodonAtEnd = FALSE, hasNoPrematureStopCodon = TRUE;
 
-	for (int i = 0; i < NUM_OF_START_CODONS; ++i) {
-		if ( strncmp(&sequence[seqIndex], START_CODONS[i], CODONS_LENGTH) == 0 ) {
-			return i;
-		}
+	if (numOfRuns != 0) { // For some peculiar reason, input cannot be flushed so it always receives an empty sequence on the first run, the analysis of which we do not store to results
+		fprintf(output_stream, "\nYou entered the sequence:\n");
 	}
-	return -1;
-}
+	fprintf(output_stream, GREEN_BLOCK_OF_TEXT "%s" RESET, sequence);
+	fprintf(output_stream, "\n");
 
-int is_stop_codon(char* sequence, int seqIndex) {
+    isLengthMultOf3 = strlen(sequence)  % 3 == 0;
+    if (!isLengthMultOf3)
+    {
+    	fprintf(output_stream, FAIL_BLINK "This is NOT a valid coding sequence!!!\n(sequence length not a multiple of %d)" RESET, CODONS_LENGTH);
+    	return FALSE; //continue;
+    }
+	toUpperCase(sequence); // convert to lower case for uniformity and easier processing
 
-	for (int i = 0; i < NUM_OF_STOP_CODONS; ++i) {
-		if ( strncmp(&sequence[seqIndex], STOP_CODONS[i], CODONS_LENGTH) == 0 ) {
-			return i;
-		}
-	}
-	return -1;
-}
-
-// bool is_valid_seq(FILE* output_stream, char* sequence) {
-// 	// bool isLengthMultOf3 = FALSE, isStartCodonAtBeginning = FALSE, isStopCodonAtEnd = FALSE, hasNoPrematureStopCodon = TRUE;
-// 	bool isLengthMultOf3 = TRUE, isStartCodonAtBeginning = TRUE, isStopCodonAtEnd = TRUE, hasNoPrematureStopCodon = TRUE;
-
-//     isLengthMultOf3 = strlen(sequence)  % CODONS_LENGTH == 0; // TODO: change name to be more generic than 3
-//     if (!isLengthMultOf3) {
-//     	fprintf(output_stream, FAIL_BLINK "This is NOT a valid coding sequence!!!\n(sequence length not a multiple of %d)\n" RESET, CODONS_LENGTH);
-//     	return FALSE; //continue;
-//     }
-
-//     bool isCodingSequence = isStartCodonAtBeginning && hasNoPrematureStopCodon; //  && isStopCodonAtEnd
-
-//     // if ( seqIndex == sequenceLength-strlen(STOP_CODONS[seqIndex]) ) {			        				
-// 	// 	isStopCodonAtEnd = TRUE;
-// 	// } else {
-// 	// 	hasNoPrematureStopCodon = FALSE;
-// 	// }
-
-//     return isCodingSequence;
-// }
-
-Sequence** tokenize_seq(FILE* output_stream, int numOfRuns, char* sequence, int sequenceLength/*, direction seqDirection*/) {
-	
-	toUpperCase(sequence); // convert to upper case for uniformity and easier processing
-
-  	SpecialSubsequence* codons = (SpecialSubsequence *) malloc( (sequenceLength/CODONS_LENGTH) * sizeof(SpecialSubsequence) );
+  	SpecialSubsequence* codons = (SpecialSubsequence *) malloc( (sequenceLength/3) * sizeof(SpecialSubsequence) );
   	int codonsArraySize = 0;  // Keep track of the current size of the array. Array is dynamically extended in each iteration of the following for-loop
 
 	for (int seqIndex = 0; seqIndex < sequenceLength; /*seqIndex + CODONS_LENGTH, but it's done at the last step of each iteration */ )
-	{	// TODO: functionality to check reverse seq: reverse each stored codon and store it at the end of the array moving backwards
-
+	{
 		SpecialSubsequence* currentCodon = (SpecialSubsequence*) malloc(sizeof(SpecialSubsequence));
-		int startCodonPosition = is_start_codon(sequence, seqIndex);
-		if (startCodonPosition > -1) {
-			currentCodon->type = START;
-			currentCodon->codonSequence = START_CODONS[startCodonPosition];
-			currentCodon->positionInSequence = seqIndex;
-		}
+		bool isSpecialCodon = FALSE;
 
-		int stopCodonPosition = is_stop_codon(sequence, seqIndex);
-		if (stopCodonPosition > -1) {
-			currentCodon->type = STOP;
-			currentCodon->codonSequence = STOP_CODONS[stopCodonPosition];
-			currentCodon->positionInSequence = seqIndex;
-		}
-		
-    	if ( (startCodonPosition > -1) && (stopCodonPosition > -1) ) {
+		for (int i = 0; i < NUM_OF_START_CODONS; ++i)
+    	{
+			
+    		if ( strncmp(&sequence[seqIndex], START_CODONS[i], CODONS_LENGTH) == 0 ) 
+			{
+				isStartCodonAtBeginning = TRUE;
+				currentCodon->type = START;
+				currentCodon->codonSequence = START_CODONS[i];
+				currentCodon->positionInSequence = seqIndex;
+				isSpecialCodon = TRUE;
+				break;
+			}
+    	}
+
+    	for (int i = 0; i < NUM_OF_STOP_CODONS; ++i)
+    	{
+    		if ( strncmp(&sequence[seqIndex], STOP_CODONS[i], CODONS_LENGTH) == 0 ) 
+			{
+				if ( seqIndex == sequenceLength-strlen(STOP_CODONS[i]) )
+    			{			        				
+    				isStopCodonAtEnd = TRUE;
+    			} else
+    			{
+    				hasNoPrematureStopCodon = FALSE;
+    			}
+				currentCodon->type = STOP;
+				currentCodon->codonSequence = STOP_CODONS[i];
+				currentCodon->positionInSequence = seqIndex;
+				isSpecialCodon = TRUE;
+				break;
+			}
+    	}
+
+    	if (!isSpecialCodon)
+    	{
     		currentCodon->type = PLAIN;
     		currentCodon->codonSequence = (char*) malloc(sizeof(char) * CODONS_LENGTH + sizeof(char));
         	memcpy(currentCodon->codonSequence, &sequence[seqIndex], CODONS_LENGTH);
@@ -274,147 +253,22 @@ Sequence** tokenize_seq(FILE* output_stream, int numOfRuns, char* sequence, int 
         codons = realloc(codons, (codonsArraySize + 1) * sizeof(SpecialSubsequence));
         if (codons == NULL) {
             fprintf(output_stream, ERROR_COLOR "Memory allocation failed. Couldn't store codon to the list of sequence's codons.\n%s\a\n" RESET, strerror(errno));
-            return NULL; // return 1; // TODO: do not exit, but return to main menu, after flushing all allocated memory
+            return FALSE; // return 1; // TODO: do not exit, but return to main menu, after flushing all allocated memory
         }
         codons[codonsArraySize] = *currentCodon;  // Append the structure 'currentCodon' to the array
-        codonsArraySize++;	
+        codonsArraySize++;
+        						
         free(currentCodon);
 
         seqIndex += CODONS_LENGTH;
 	}
 
-	// bool isCodingSequence = is_valid_seq(output_stream, sequence);
+	bool isCodingSequence = isStartCodonAtBeginning && hasNoPrematureStopCodon; //  && isStopCodonAtEnd
+  	
 
-	// We will store the sequence twice (forward & reverse direction):
+  	free(codons);
 
-	// Allocate memory for struct and flexible array of codons
-	int lengthOfCodonsArray = ((sequenceLength/3) * sizeof(SpecialSubsequence)) / sizeof(codons[0]); 
-
-	Sequence** givenAndReversedSeq = malloc(2 * sizeof(Sequence*));
-	if (givenAndReversedSeq == NULL) {
-	    fprintf(output_stream, ERROR_COLOR "Memory allocation failed. Couldn't store sequence.\n%s\a\n" RESET, strerror(errno));
-	    exit(EXIT_FAILURE);
-	}
-
-	givenAndReversedSeq[0] = malloc(sizeof(Sequence) + sizeof(SpecialSubsequence) * lengthOfCodonsArray);
-	givenAndReversedSeq[0]->length = strlen(sequence);
-	givenAndReversedSeq[0]->seqDirection = FORWARD;
-	memcpy(givenAndReversedSeq[0]->specialCodons, codons, sizeof(SpecialSubsequence) * lengthOfCodonsArray);
-
-	givenAndReversedSeq[1] = malloc(sizeof(Sequence) + sizeof(SpecialSubsequence) * lengthOfCodonsArray);
-	givenAndReversedSeq[1]->length = strlen(sequence);
-	givenAndReversedSeq[1]->seqDirection = REVERSE;
-	memcpy(givenAndReversedSeq[1]->specialCodons, codons, sizeof(SpecialSubsequence) * lengthOfCodonsArray);
-	
-
-	// TODO: decide when it's a good time to free the allocated memory
-  	// free(codons);
-  	// Free allocated memory later in the code when no longer needed
-	// for (int i = 0; i < 2; i++) {
-	//     free(givenAndReversedSeq[i]); // Free each Sequence struct
-	// }
-	// free(givenAndReversedSeq); // Free the array of pointers
-	
-	return givenAndReversedSeq;
-}
-
-Sequence** find_all_sequences(FILE* output_stream, int numOfRuns, char* sequence, int sequenceLength) {
-	Sequence** givenAndReversedSeq = tokenize_seq(output_stream, numOfRuns, sequence, sequenceLength);
-
-	Sequence** validSequencesArray = malloc( sizeof(Sequence*) );
-	if (validSequencesArray == NULL) {
-	    fprintf(output_stream, ERROR_COLOR "Memory allocation failed. Couldn't create array with valid sequences.\n%s\a\n" RESET, strerror(errno));
-	    exit(EXIT_FAILURE);
-	}
-	int validSeqsArraySize = 0;
-	Sequence* newValidSequence;
-
-	SpecialSubsequence* codons = (SpecialSubsequence *) malloc( sizeof(SpecialSubsequence) );
-  	int codonsArraySize = 0;  // Keep track of the current size of the array. Array is dynamically extended in each iteration of the following for-loop
-
-	bool foundStartCodon = FALSE;
-
-	// *********************     FORWARD SEQUENCE :    ***********************************************************
-
-	for (int i = 0; i < sequenceLength/CODONS_LENGTH; i++) {
-
-		foundStartCodon = (givenAndReversedSeq[0]->specialCodons[i].type == START) ? TRUE : foundStartCodon; // Give it a new (true) value only if a start codon is found
-
-		if (foundStartCodon) {
-			
-			// Reallocate memory for the codons' array to hold one more element
-	        codons = realloc(codons, (codonsArraySize + 1) * sizeof(SpecialSubsequence));
-	        if (codons == NULL) {
-	            fprintf(output_stream, ERROR_COLOR "Memory allocation failed. Couldn't store codon to the list of sequence's codons.\n%s\a\n" RESET, strerror(errno));
-	            return NULL; // return 1; // TODO: do not exit, but return to main menu, after flushing all allocated memory
-	        }
-			codonsArraySize++;
-
-			if ( givenAndReversedSeq[0]->specialCodons[i].type == STOP ) {
-
-				// Found a valid sequence, so we create the struct that will kepp its info and we store it to the array with all valid sequences
-
-				newValidSequence = malloc(sizeof(Sequence) + sizeof(SpecialSubsequence) * codonsArraySize);
-				newValidSequence->length = codonsArraySize*CODONS_LENGTH;
-				newValidSequence->seqDirection = givenAndReversedSeq[0]->seqDirection;
-				memcpy(newValidSequence->specialCodons, codons, sizeof(SpecialSubsequence) * codonsArraySize);
-
-				// Reallocate memory for the valid sequences' array to hold one more element
-		        validSequencesArray = realloc(validSequencesArray, (validSeqsArraySize + 1) * sizeof(SpecialSubsequence));
-		        if (validSequencesArray == NULL) {
-		            fprintf(output_stream, ERROR_COLOR "Memory allocation failed. Couldn't store sequence to the list of valid sequences.\n%s\a\n" RESET, strerror(errno));
-		            return NULL; // return 1; // TODO: do not exit, but return to main menu, after flushing all allocated memory
-		        }
-				validSeqsArraySize++;
-				foundStartCodon = FALSE;
-			}
-		}
-	}
-
-		
-	// *********************     BACKWARD SEQUENCE :    ***********************************************************
-
-	free(codons);
-	codons = (SpecialSubsequence *) malloc( sizeof(SpecialSubsequence) );
-  	codonsArraySize = 0; 
-	foundStartCodon = FALSE;
-
-	for (int i = 0; i < sequenceLength/CODONS_LENGTH; i++) {
-
-		foundStartCodon = givenAndReversedSeq[1]->specialCodons[i].type == START ? TRUE : foundStartCodon; // Give it a new (true) value only if a start codon is found
-
-		if (foundStartCodon) {
-			
-			// Reallocate memory for the codons' array to hold one more element
-	        codons = realloc(codons, (codonsArraySize + 1) * sizeof(SpecialSubsequence));
-	        if (codons == NULL) {
-	            fprintf(output_stream, ERROR_COLOR "Memory allocation failed. Couldn't store codon to the list of sequence's codons.\n%s\a\n" RESET, strerror(errno));
-	            return NULL; // return 1; // TODO: do not exit, but return to main menu, after flushing all allocated memory
-	        }
-			codonsArraySize++;
-
-			if ( givenAndReversedSeq[1]->specialCodons[i].type == STOP ) {
-
-				// Found a valid sequence, so we create the struct that will kepp its info and we store it to the array with all valid sequences
-
-				newValidSequence = malloc(sizeof(Sequence) + sizeof(SpecialSubsequence) * codonsArraySize);
-				newValidSequence->length = codonsArraySize*CODONS_LENGTH;
-				newValidSequence->seqDirection = givenAndReversedSeq[1]->seqDirection;
-				memcpy(newValidSequence->specialCodons, codons, sizeof(SpecialSubsequence) * codonsArraySize);
-
-				// Reallocate memory for the valid sequences' array to hold one more element
-		        validSequencesArray = realloc(validSequencesArray, (validSeqsArraySize + 1) * sizeof(SpecialSubsequence));
-		        if (validSequencesArray == NULL) {
-		            fprintf(output_stream, ERROR_COLOR "Memory allocation failed. Couldn't store sequence to the list of valid sequences.\n%s\a\n" RESET, strerror(errno));
-		            return NULL; // return 1; // TODO: do not exit, but return to main menu, after flushing all allocated memory
-		        }
-				validSeqsArraySize++;
-				foundStartCodon = FALSE;
-			}
-		}
-	}
-
-	return validSequencesArray;
+	return isCodingSequence;
 }
 /*
 int getSubstringPosition(char *str, char *substr)
@@ -595,47 +449,37 @@ int main(int argc, char const *argv[])
 					hasValidChars = has_valid_chars(sequence, sequenceLength, VALID_CHARS, NUM_OF_VALID_CHARS) || (strcmp(sequence, "q") == 0) || (strcmp(sequence, "Q") == 0);
 	        	}
 
-	        	if (numOfRuns != 0) { // For some peculiar reason, input cannot be flushed so it always receives an empty sequence on the first run, the analysis of which we do not store to results
-					fprintf(output_stream, "\nYou entered the sequence:\n");
-				}
-				fprintf(output_stream, GREEN_BLOCK_OF_TEXT "%s" RESET, sequence);
-				fprintf(output_stream, "\n");
-
 	        	bool isCodingSequence = FALSE;
 
 		        if (!inputOfSeqsCompleted)
-		        {	
-		        	Sequence** validSequencesArray;
-		        	validSequencesArray = find_all_sequences( output_stream, numOfRuns, sequence, sequenceLength);
+		        {
+		        	// Allocate memory for struct and flexible array of codons
+		        	int lengthOfCodonsArray = ((sequenceLength/3) * sizeof(SpecialSubsequence)) / sizeof(codons[0]);
+				    Sequence* currentSequence = malloc(sizeof(Sequence) + sizeof(SpecialSubsequence) * lengthOfCodonsArray);
+					currentSequence->length = strlen(sequence);
+					currentSequence->isCodingSequence = isCodingSequence;
+					memcpy(currentSequence->specialCodons, codons, sizeof(SpecialSubsequence) * lengthOfCodonsArray);
 
-					// // Allocate memory for struct and flexible array of codons
-		        	// int lengthOfCodonsArray = ((sequenceLength/3) * sizeof(SpecialSubsequence)) / sizeof(SpecialSubsequence);
-				    // Sequence* currentSequence = malloc(sizeof(Sequence) + sizeof(SpecialSubsequence) * lengthOfCodonsArray);
-					// currentSequence->length = strlen(sequence);
-					// currentSequence->isCodingSequence = isCodingSequence;
-					// memcpy(currentSequence->specialCodons, codons, sizeof(SpecialSubsequence) * lengthOfCodonsArray);
+					isCodingSequence = is_valid_seq(output_stream, numOfRuns, sequence, sequenceLength);
+			        char* reversed = reverseString(output_stream, sequence, sequenceLength);
+			        isCodingSequence = isCodingSequence && is_valid_seq(output_stream, numOfRuns, reversed, sequenceLength);
 
+					if ( numOfRuns != 0 )
+					{
+						if ( isCodingSequence )
+				    	{
+				    		fprintf(output_stream, SUCCESS_BLINK "This is a valid coding sequence!!!\n" RESET);
+				    	} else {
+				    		fprintf(output_stream, FAIL_BLINK "This is NOT a valid coding sequence!!!\n" RESET);
+				    	}
+					}
 
-					// isCodingSequence = is_valid_seq(output_stream, sequence);
-			        // char* reversed = reverseString(output_stream, sequence, sequenceLength);
-			        // isCodingSequence = isCodingSequence && is_valid_seq(output_stream, reversed);
-
-					// if ( numOfRuns != 0 )
-					// {
-					// 	if ( isCodingSequence )
-				    // 	{
-				    // 		fprintf(output_stream, SUCCESS_BLINK "This is a valid coding sequence!!!\n" RESET);
-				    // 	} else {
-				    // 		fprintf(output_stream, FAIL_BLINK "This is NOT a valid coding sequence!!!\n" RESET);
-				    // 	}
-					// }
-
-					// for (int i = 0; i < lengthOfCodonsArray; ++i)
-					// {
-					// 	fprintf(output_stream, "Position: %d", currentSequence->specialCodons[i].positionInSequence);
-					// 	fprintf(output_stream, "\tCodon: %s", currentSequence->specialCodons[i].codonSequence);
-					// 	fprintf(output_stream, "\tType: %s\n", codonTypeToString(currentSequence->specialCodons[i].type));
-					// }
+					for (int i = 0; i < lengthOfCodonsArray; ++i)
+					{
+						fprintf(output_stream, "Position: %d", currentSequence->specialCodons[i].positionInSequence);
+						fprintf(output_stream, "\tCodon: %s", currentSequence->specialCodons[i].codonSequence);
+						fprintf(output_stream, "\tType: %s\n", codonTypeToString(currentSequence->specialCodons[i].type));
+					}
 
 					/* TODO: do I need to free the following memory section? if yes, how to do it effectively?
 					for (int i = 0; i < lengthOfCodonsArray; ++i)
@@ -643,7 +487,8 @@ int main(int argc, char const *argv[])
 						free(codons[i].codonSequence);
 					}
 					*/
-					
+					free(codons);
+					free(currentSequence);
 			    }
 
 		        numOfRuns++;
