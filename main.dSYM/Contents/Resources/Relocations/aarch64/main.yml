@@ -1,0 +1,32 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     "/Users/arigas/Documents/Proprietary/ΒΙΟΙΝF/ΕΒΠ101 UNIX και Αρχές προγραμματισμού/ProjectA/main"
+relocations:
+  - { offset: 0x26, size: 0x8, addend: 0x0, symName: _codonTypeToString, symObjAddr: 0x0, symBinAddr: 0x100001328, symSize: 0x94 }
+  - { offset: 0x3F, size: 0x8, addend: 0x0, symName: _HISTORY_RECORDS_SIZE, symObjAddr: 0x214C, symBinAddr: 0x10000357C, symSize: 0x0 }
+  - { offset: 0x6E, size: 0x8, addend: 0x0, symName: _START_CODONS, symObjAddr: 0x2B60, symBinAddr: 0x100008000, symSize: 0x0 }
+  - { offset: 0x94, size: 0x8, addend: 0x0, symName: _NUM_OF_START_CODONS, symObjAddr: 0x2150, symBinAddr: 0x100003580, symSize: 0x0 }
+  - { offset: 0xA9, size: 0x8, addend: 0x0, symName: _STOP_CODONS, symObjAddr: 0x2B78, symBinAddr: 0x100008018, symSize: 0x0 }
+  - { offset: 0xBE, size: 0x8, addend: 0x0, symName: _NUM_OF_STOP_CODONS, symObjAddr: 0x2154, symBinAddr: 0x100003584, symSize: 0x0 }
+  - { offset: 0xD3, size: 0x8, addend: 0x0, symName: _VALID_CHARS, symObjAddr: 0x2B90, symBinAddr: 0x100008030, symSize: 0x0 }
+  - { offset: 0xF4, size: 0x8, addend: 0x0, symName: _NUM_OF_VALID_CHARS, symObjAddr: 0x2158, symBinAddr: 0x100003588, symSize: 0x0 }
+  - { offset: 0x266, size: 0x8, addend: 0x0, symName: _codonTypeToString, symObjAddr: 0x0, symBinAddr: 0x100001328, symSize: 0x94 }
+  - { offset: 0x28E, size: 0x8, addend: 0x0, symName: _readDirectionToString, symObjAddr: 0x94, symBinAddr: 0x1000013BC, symSize: 0x70 }
+  - { offset: 0x2B6, size: 0x8, addend: 0x0, symName: _createSequence, symObjAddr: 0x104, symBinAddr: 0x10000142C, symSize: 0x140 }
+  - { offset: 0x340, size: 0x8, addend: 0x0, symName: _createSequence2, symObjAddr: 0x244, symBinAddr: 0x10000156C, symSize: 0xA0 }
+  - { offset: 0x3BC, size: 0x8, addend: 0x0, symName: _stream_is_empty, symObjAddr: 0x2E4, symBinAddr: 0x10000160C, symSize: 0x14 }
+  - { offset: 0x3E4, size: 0x8, addend: 0x0, symName: _clear_input_buffer, symObjAddr: 0x2F8, symBinAddr: 0x100001620, symSize: 0x158 }
+  - { offset: 0x440, size: 0x8, addend: 0x0, symName: _createList, symObjAddr: 0x450, symBinAddr: 0x100001778, symSize: 0x40 }
+  - { offset: 0x468, size: 0x8, addend: 0x0, symName: _appendToList, symObjAddr: 0x490, symBinAddr: 0x1000017B8, symSize: 0xA8 }
+  - { offset: 0x4A8, size: 0x8, addend: 0x0, symName: _removeFromList, symObjAddr: 0x538, symBinAddr: 0x100001860, symSize: 0xE8 }
+  - { offset: 0x4DA, size: 0x8, addend: 0x0, symName: _printList, symObjAddr: 0x620, symBinAddr: 0x100001948, symSize: 0x1A4 }
+  - { offset: 0x553, size: 0x8, addend: 0x0, symName: _freeList, symObjAddr: 0x7C4, symBinAddr: 0x100001AEC, symSize: 0x74 }
+  - { offset: 0x5A5, size: 0x8, addend: 0x0, symName: _toUpperCase, symObjAddr: 0x838, symBinAddr: 0x100001B60, symSize: 0x6C }
+  - { offset: 0x5CB, size: 0x8, addend: 0x0, symName: _has_valid_chars, symObjAddr: 0x8A4, symBinAddr: 0x100001BCC, symSize: 0x104 }
+  - { offset: 0x66B, size: 0x8, addend: 0x0, symName: _reverseString, symObjAddr: 0x9A8, symBinAddr: 0x100001CD0, symSize: 0x128 }
+  - { offset: 0x6DF, size: 0x8, addend: 0x0, symName: _is_start_codon, symObjAddr: 0xAD0, symBinAddr: 0x100001DF8, symSize: 0x94 }
+  - { offset: 0x726, size: 0x8, addend: 0x0, symName: _is_stop_codon, symObjAddr: 0xB64, symBinAddr: 0x100001E8C, symSize: 0x94 }
+  - { offset: 0x76D, size: 0x8, addend: 0x0, symName: _tokenize_seq, symObjAddr: 0xBF8, symBinAddr: 0x100001F20, symSize: 0x4C8 }
+  - { offset: 0x877, size: 0x8, addend: 0x0, symName: _find_all_sequences, symObjAddr: 0x10C0, symBinAddr: 0x1000023E8, symSize: 0x3C0 }
+  - { offset: 0x972, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x1480, symBinAddr: 0x1000027A8, symSize: 0xCCC }
+...
