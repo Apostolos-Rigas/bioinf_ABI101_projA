@@ -1,0 +1,41 @@
+[{
+		"length":	9,
+		"direction":	"FORWARD",
+		"positionInSupersequence":	1,
+		"isCodingSequence":	true,
+		"sequenceCodons":	[{
+				"type":	"START",
+				"codonSequence":	"AUG",
+				"positionInSequence":	1
+			}, {
+				"type":	"PLAIN",
+				"codonSequence":	"UCC",
+				"positionInSequence":	4
+			}, {
+				"type":	"STOP",
+				"codonSequence":	"UAA",
+				"positionInSequence":	7
+			}]
+	}, {
+		"length":	12,
+		"direction":	"FORWARD",
+		"positionInSupersequence":	1,
+		"isCodingSequence":	true,
+		"sequenceCodons":	[{
+				"type":	"START",
+				"codonSequence":	"AUG",
+				"positionInSequence":	1
+			}, {
+				"type":	"PLAIN",
+				"codonSequence":	"UCC",
+				"positionInSequence":	4
+			}, {
+				"type":	"PLAIN",
+				"codonSequence":	"UCC",
+				"positionInSequence":	7
+			}, {
+				"type":	"STOP",
+				"codonSequence":	"UAA",
+				"positionInSequence":	10
+			}]
+	}]
