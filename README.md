@@ -23,7 +23,7 @@ Warning! The length of the sequence must be a multiple of the codons length (def
 - At the end of the analysis session, the results are saved in an archive file, which can either be provided by the user as a terminal parameter or is taken as the default "./ARCHIVE_FILE.txt".
 - The output of the program can also be defined by the user as a terminal parameter. This allows for interactive use of the program via the screen (default mode) or non-interactive use by redirecting the output to a file (e.g., for system administrators or for logging and later preview from a remote terminal).
 
-## Theoretical Foundations:
+## Theoretical Foundations
 The analysis of the sequence and its validation as a coding sequence is based on the following concepts from cell biology and genetics:
 
 1. **Consecutive Stop Codons Without a Start Codon Between**: It is possible for bacterial genomes to contain consecutive stop codons without an intervening start codon, often seen in genes with overlapping reading frames, where one gene's stop codon serves as the start codon for another gene. Overlapping genes are common in compact genomes and may be an evolutionary strategy to maximize genetic information (Benoit et al., 2012) ([Benoit et al., 2012](https://biologydirect.biomedcentral.com/articles/10.1186/1745-6150-7-30)).
@@ -39,7 +39,6 @@ The analysis of the sequence and its validation as a coding sequence is based on
 * The papers mentioned where retrieved from the Web using ChatGPT and then assessed for credibility by the projects authors.
 
 ## Known Bugs
-
 - If in any menu user presses the arrows (up/down/left/right) and then types an input, the app stucks in an infinite loop.
 - If it happens to exit the programm unexpectedly (e.g. killing the terminal process) while in a colored background, the color of the terminal background remains colored (but if one re-runs the app and then exit properly the color is fixed-reset to default terminal color).
 - If sequence is longer than the pre-specified (by the user) max length, app terminates due to segmentation fault (11).
