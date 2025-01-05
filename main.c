@@ -29,7 +29,7 @@
 #define UNDEFINED -1
 typedef int bool;
 
-#define input_stream stdin // TODO: get this from terminal arguments at runtime <--------------------------------------------
+#define input_stream stdin 
 #define CODONS_LENGTH 3
 
 //  ***************************************************  Definitions of constants *******************************************
@@ -775,7 +775,7 @@ DoublyLinkedList* find_all_sequences(FILE* output_stream, int numOfRuns, char* s
 		if ( givenAndReversedSeq[0]->specialCodons[i].type == START )
 		{
 			foundStartCodon = TRUE;
-			positionInSupersequence = givenAndReversedSeq[0]->specialCodons[i].positionInSequence; // TODO: doesn't give the super-sequency's posiyion, but newValidSeq's. Change that!
+			positionInSupersequence = givenAndReversedSeq[0]->specialCodons[i].positionInSequence; // TODO: doesn't give the super-sequence's position, but newValidSeq's. Change that! ---> Most probably SOLVED!
 		}
 
 		if (foundStartCodon)
@@ -981,26 +981,33 @@ int main(int argc, char const *argv[])
 
 	        	int sequenceLength = 0;
 	        	bool hasValidChars = FALSE;
+	        	do
+	        	{
+		        	memset(sequence, '\0', maxLengthOfSeq);
+		        	if (numOfRuns != 0) { // For some peculiar reason, input cannot be flushed so it always receives an empty sequence on the first run, the analysis of which we do not store to results
+		        		fprintf(output_stream, "\n%d) Enter a new sequence:\t", numOfRuns);
+		        	}
+			    	fgets(sequence, maxLengthOfSeq+1, input_stream);
+			    	
+	        		sequenceLength = strlen(sequence); // Check how many characters were actually read (ignoring the newline if present)
 
-	        	memset(sequence, '\0', maxLengthOfSeq);
-	        	if (numOfRuns != 0) { // For some peculiar reason, input cannot be flushed so it always receives an empty sequence on the first run, the analysis of which we do not store to results
-	        		fprintf(output_stream, "\n%d) Enter a new sequence:\t", numOfRuns);
-	        	}
-		    	fgets(sequence, maxLengthOfSeq+1, input_stream);
-		    	
-        		sequenceLength = strlen(sequence); // Check how many characters were actually read (ignoring the newline if present)
+	        		 if (sequence[sequenceLength - 1] == '\n')
+			        {
+			        	// newLine char is ignored
+			        	sequence[sequenceLength - 1] = '\0';
+			        	sequenceLength -= 1; 
 
-        		 if (sequence[sequenceLength - 1] == '\n')
-		        {
-		        	// newLine char is ignored
-		        	sequence[sequenceLength - 1] = '\0';
-		        	sequenceLength -= 1; 
+			        } else if ( sequenceLength >= maxLengthOfSeq )
+	        		{
+			        	clear_input_buffer(input_stream, output_stream, maxLengthOfSeq); // If the user enters more than the buffer size, clear the remaining input
 
-		        } else if ( sequenceLength >= maxLengthOfSeq )
-        		{
-		        	clear_input_buffer(input_stream, output_stream, maxLengthOfSeq); // If the user enters more than the buffer size, clear the remaining input
+			        }
+			        if ( (sequenceLength%CODONS_LENGTH != 0) && (strcmp(sequence, "q") != 0) && (strcmp(sequence, "Q") != 0) )
+			        {
+			        	fprintf(output_stream, ERROR_COLOR "Sequence must be a multiple of %d\nPlease, check the sequence's length and enter it again:\t\a", CODONS_LENGTH);
+			        }
+		        } while( (sequenceLength%CODONS_LENGTH != 0) && (strcmp(sequence, "q") != 0) && (strcmp(sequence, "Q") != 0) );
 
-		        }
 		        inputOfSeqsCompleted = (strcmp(sequence, "q") == 0) || (strcmp(sequence, "Q") == 0);
 				hasValidChars = has_valid_chars(sequence, sequenceLength, VALID_CHARS, NUM_OF_VALID_CHARS) || (strcmp(sequence, "q") == 0) || (strcmp(sequence, "Q") == 0);
 
@@ -1076,10 +1083,13 @@ int main(int argc, char const *argv[])
 	    } else if (menuOption == 2)
 	    {
 	    	fprintf(output_stream, SUCCESS_COLOR "History of all sequence analyses until %s\n" RESET, getCurrentDatetime());
-	    	if (historyListOfSequences == NULL || historyListOfSequences->head == NULL)
+	    	if (historyListOfSequences == NULL)
 	    	{
 	    		fprintf(output_stream, "\nThe history is empty\n");
-	    	} else
+	    	} else if (historyListOfSequences->head == NULL || historyListOfSequences->size <= 0)
+	    	{
+	    		fprintf(output_stream, "\nThe history is empty\n");
+	    	} else 
 	    	{
 		    	printList(output_stream, historyListOfSequences);
 	    	}
@@ -1123,9 +1133,9 @@ int main(int argc, char const *argv[])
 
 // max length 20 and the above seq
 
-// 1st) aauuccauguccuaauccauguccuaauccgua 2nd) auguccuaau
+// 1st) aauuccauguccuaauccauguccuaauccgua 2nd) auguccuaau SOLVED
 
-// 1st) auguccuaau
+// 1st) auguccuaau SOLVED
 
 // if in any menu you type with arrows and then enter an input, it loops infinitivelly
 
