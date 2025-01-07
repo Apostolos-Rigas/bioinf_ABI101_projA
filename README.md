@@ -10,7 +10,7 @@
 - [Authors](#authors)
 
 ## Description
-This project constitutes an assignement for the course UNIX and Programming Fundamentals (UNIX and Programming Principles - ΕΒΠ101) at Democritus University of Thrace, offered during the winter semester of the Master's Program in Bioinformatics (https://bioinfo.mbg.duth.gr/).
+This project constitutes an assignement for the course UNIX and Programming Principles (UNIX και Αρχές Προγραμματισμού - ΕΒΠ101) at Democritus University of Thrace, offered during the winter semester of the Master's Program in Bioinformatics (https://bioinfo.mbg.duth.gr/).
 
 ## Usage
 With this C program, the user can input as many RNA sequences they desire, and the program analyzes and prints to the screen (or any output device specified) the segments of the sequence that correspond to bacterial gene regions.
