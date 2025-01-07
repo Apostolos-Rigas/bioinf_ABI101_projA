@@ -17,13 +17,19 @@ With this C program, the user can input as many RNA sequences they desire, and t
 
 Initially, the user must define the maximum sequence length they intend to input. If they wish to input sequences longer than the initial maximum length, they must return to the main menu and redefine the maximum sequence length.
 
+
+
 Examples of using the app from terminal:
+
 For already compiled .c file:
-  1) cd {path_where_compiled_exe_is_located}
-  2) ./{file_name e.g. bioinf_projA} stdout ARCHIVE_FILE.txt
+cd {path_where_compiled_exe_is_located}
+./{file_name e.g. bioinf_projA} stdout ARCHIVE_FILE.txt
+
 To compile the app and run it:
-  2) make
-  3) ./bioinf_projA stdout ARCHIVE_FILE.txt
+make
+./bioinf_projA stdout ARCHIVE_FILE.txt
+
+
 
 Warning! The length of the sequence must be a multiple of the codons length (default value is 3).
 
