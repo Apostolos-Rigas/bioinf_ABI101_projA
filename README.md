@@ -17,11 +17,21 @@ With this C program, the user can input as many RNA sequences they desire, and t
 
 Initially, the user must define the maximum sequence length they intend to input. If they wish to input sequences longer than the initial maximum length, they must return to the main menu and redefine the maximum sequence length.
 
+Examples of using the app from terminal:
+- For already compiled .c file:
+
+  cd {path_where_compiled_exe_is_located}
+  ./{file_name e.g. bioinf_projA} stdout ARCHIVE_FILE.txt
+  
+- To compile the app and run it
+  make
+  ./bioinf_projA stdout ARCHIVE_FILE.txt
+
 Warning! The length of the sequence must be a multiple of the codons length (default value is 3).
 
 ## Side_Functionality
 - At the end of the analysis session, the results are saved in an archive file, which can either be provided by the user as a terminal parameter or is taken as the default "./ARCHIVE_FILE.txt".
-- The output of the program can also be defined by the user as a terminal parameter. This allows for interactive use of the program via the screen (default mode) or non-interactive use by redirecting the output to a file (e.g., for system administrators or for logging and later preview from a remote terminal).
+- The output of the program can also be defined by the user as a terminal parameter. This allows for interactive use of the program utilizing the screen (default mode) or non-interactive use by redirecting the output to a file (e.g. for system administrators or for logging and later preview from a remote terminal).
 
 ## Theoretical_Foundations
 The analysis of the sequence and its validation as a coding sequence is based on the following concepts from cell biology and genetics:
@@ -36,13 +46,13 @@ The analysis of the sequence and its validation as a coding sequence is based on
 
 5. **Encoding a Gene in Both Directions**: Bacterial genomes can encode genes in both directions, referred to as convergent or divergent genes. This arrangement allows for efficient use of genomic space and can regulate gene expression. Genes encoded in both directions are often co-regulated, contributing to bacterial adaptability and efficiency (Hwang et al., 2020) ([Hwang et al., 2020](https://arxiv.org/abs/2008.10758)).
 
-* The papers mentioned where retrieved from the Web using ChatGPT and then assessed for credibility by the projects authors.
+* The papers mentioned where retrieved from the Web using ChatGPT and then assessed for credibility by the project's authors.
 
 ## Known_Bugs
-- If in any menu user presses the arrows (up/down/left/right) and then types an input, the app stucks in an infinite loop.
-- If it happens to exit the programm unexpectedly (e.g. killing the terminal process) while in a colored background, the color of the terminal background remains colored (but if one re-runs the app and then exit properly the color is fixed-reset to default terminal color).
+- If -in any menu- user presses the arrows (up/down/left/right) and then types an input, the app stucks in an infinite loop.
+- If it happens to exit the programm unexpectedly (e.g. killing the terminal process) while in a colored background, the color of the terminal background remains colored (but if one re-runs the app and then exit properly the color is fixed/reset to default terminal color).
 - If sequence is longer than the pre-specified (by the user) max length, app terminates due to segmentation fault (11).
-- There are very rare incidents when the position of the valid coding sequence is off by one.
+- There are very rare incidents when the position of the valid coding sequence is off by one codon.
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. Library cJSON used in this project is also covered by MIT License.
