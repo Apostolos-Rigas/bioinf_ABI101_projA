@@ -20,12 +20,12 @@ Initially, the user must define the maximum sequence length they intend to input
 Examples of using the app from terminal:
 * For already compiled .c file:
 
-  cd {path_where_compiled_exe_is_located}
-  ./{file_name e.g. bioinf_projA} stdout ARCHIVE_FILE.txt
+  1) cd {path_where_compiled_exe_is_located}
+  2) ./{file_name e.g. bioinf_projA} stdout ARCHIVE_FILE.txt
   
 * To compile the app and run it:
-  make
-  ./bioinf_projA stdout ARCHIVE_FILE.txt
+  2) make
+  3) ./bioinf_projA stdout ARCHIVE_FILE.txt
 
 Warning! The length of the sequence must be a multiple of the codons length (default value is 3).
 
